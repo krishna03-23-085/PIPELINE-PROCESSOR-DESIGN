@@ -1,0 +1,17 @@
+// Code your testbench here
+// or browse Examples
+module testbench;
+  reg clk;
+  PipelineProcessor uut(clk);
+
+  initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars(0, testbench);
+    clk = 0;
+    forever #5 clk = ~clk;
+  end
+
+  initial begin
+    #120 $finish;
+  end
+endmodule
