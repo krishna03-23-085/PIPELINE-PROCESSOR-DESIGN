@@ -60,3 +60,6 @@ After running the simulation on EDA Playground, the waveform displayed signals s
 
 The waveform clearly demonstrated instruction overlap, proving that the design implemented pipelining correctly. Each stage completed its operation in one clock cycle, and new results appeared at regular intervals as expected.
 
+#Result
+
+<img width="1440" height="846" alt="Image" src="https://github.com/user-attachments/assets/9c78d90b-c4ed-4aa6-842c-6a50c99b3177" />
