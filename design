@@ -1,0 +1,64 @@
+// Code your design here
+module PipelineProcessor(input clk);
+  // Registers
+  reg [7:0] regfile [0:3];     // Four general purpose registers R0–R3
+  reg [7:0] instr_mem [0:15];  // Instruction memory
+  reg [7:0] data_mem [0:15];   // Data memory
+  reg [7:0] PC;
+
+  // Pipeline registers
+  reg [7:0] IF_ID_IR, IF_ID_PC;
+  reg [7:0] ID_EX_A, ID_EX_B, ID_EX_IR;
+  reg [7:0] EX_WB_IR, EX_WB_ALUOUT;
+
+  // Opcodes
+  localparam ADD = 2'b00,
+             SUB = 2'b01,
+             LOAD = 2'b10;
+
+  // --- INITIALIZE EVERYTHING ---
+  initial begin
+    PC = 0;
+    // Initialize registers
+    regfile[0] = 8'd5;
+    regfile[1] = 8'd10;
+    regfile[2] = 8'd0;
+    regfile[3] = 8'd0;
+
+    // Initialize data memory
+    data_mem[0] = 8'd20;
+
+    // Instruction format: [opcode][rd][rs]
+    // Example: ADD R2 = R0 + R1
+    instr_mem[0] = {ADD, 2'b10, 2'b00};   // R2 = R0 + R0
+    instr_mem[1] = {ADD, 2'b10, 2'b01};   // R2 = R2 + R1
+    instr_mem[2] = {SUB, 2'b11, 2'b00};   // R3 = R3 - R0
+    instr_mem[3] = {LOAD, 2'b00, 2'b00};  // R0 = MEM[0]
+  end
+
+  // --- PIPELINE STAGES ---
+  always @(posedge clk) begin
+    // Write Back Stage
+    case (EX_WB_IR[7:6])
+      ADD, SUB, LOAD: regfile[EX_WB_IR[5:4]] <= EX_WB_ALUOUT;
+    endcase
+
+    // Execute Stage
+    case (ID_EX_IR[7:6])
+      ADD:  EX_WB_ALUOUT <= ID_EX_A + ID_EX_B;
+      SUB:  EX_WB_ALUOUT <= ID_EX_A - ID_EX_B;
+      LOAD: EX_WB_ALUOUT <= data_mem[ID_EX_B];
+    endcase
+    EX_WB_IR <= ID_EX_IR;
+
+    // Decode Stage
+    ID_EX_A  <= regfile[IF_ID_IR[3:2]];
+    ID_EX_B  <= regfile[IF_ID_IR[1:0]];
+    ID_EX_IR <= IF_ID_IR;
+
+    // Fetch Stage
+    IF_ID_IR <= instr_mem[PC];
+    IF_ID_PC <= PC;
+    PC <= PC + 1;
+  end
+endmodule
